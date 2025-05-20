@@ -3,14 +3,10 @@ package org.mattiadr.burpIO.functions
 import burp.api.montoya.http.message.HttpHeader
 import burp.api.montoya.http.message.HttpRequestResponse
 import java.awt.Component
-import java.awt.Toolkit
-import java.awt.datatransfer.Clipboard
-import java.awt.datatransfer.StringSelection
 import javax.swing.JMenuItem
 
 object CopyAsMarkdown {
 
-	private val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
 	private val uninterestingHeaders = listOf(
 		"accept",
 		"accept-encoding",
@@ -44,12 +40,6 @@ object CopyAsMarkdown {
 			addActionListener { copyAsMarkdown(requestResponses, true) }
 			menuItems.add(this)
 		}
-	}
-
-	// clipboard utility
-	private fun stringToClipboard(string: String) {
-		val selection = StringSelection(string)
-		clipboard.setContents(selection, selection)
 	}
 
 	private fun copyAsMarkdown(requestResponseList: List<HttpRequestResponse>, hideHeaders: Boolean) {
