@@ -50,7 +50,7 @@ object SaveResponseBody {
 		filename = filename ?: requestResponse.request().pathWithoutQuery()
 		filename = File(filename).name
 
-		return if (filename.isNotBlank()) filename else "noname"
+		return filename.ifBlank { "noname" }
 	}
 
 	private fun saveResponseBody(requestResponse: HttpRequestResponse) {

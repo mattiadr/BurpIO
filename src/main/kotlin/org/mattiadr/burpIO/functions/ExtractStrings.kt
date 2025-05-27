@@ -31,11 +31,13 @@ object ExtractStrings {
 		val extractSubMenu = JMenu("Extract")
 
 		JMenuItem("Path").apply {
-			addActionListener { stringToClipboard(requestResponses.map { it.request().path() }.joinToString("\n")) }
+			addActionListener { stringToClipboard(requestResponses.joinToString("\n") { it.request().path() }) }
 			extractSubMenu.add(this)
 		}
 		JMenuItem("Path without Query").apply {
-			addActionListener { stringToClipboard(requestResponses.map { it.request().pathWithoutQuery() }.joinToString("\n")) }
+			addActionListener { stringToClipboard(requestResponses.joinToString("\n") {
+				it.request().pathWithoutQuery()
+			}) }
 			extractSubMenu.add(this)
 		}
 		JMenuItem("Request Header").apply {
@@ -49,13 +51,12 @@ object ExtractStrings {
 		JMenuItem("Request Body (Regex)").apply {
 			addActionListener {
 				showPopup("Insert Regex to Extract") { pattern ->
-					requestResponses.mapNotNull {
-						val regex = if (pattern.isNotBlank()) Regex(pattern) else Regex(".*")
-						regex.find(it.request().bodyToString())?.let {
-							if (it.groupValues.size > 1)
-								it.groupValues.drop(1).map { it.replace("\t", "\\t") }.joinToString("\t")
-							else
-								it.groupValues.getOrNull(0)?.replace("\t", "\\t")
+					val regex = if (pattern.isNotBlank()) Regex(pattern) else Regex(".*")
+					requestResponses.mapNotNull { rr ->
+						rr.request().bodyToString().let {
+							regex.find(it)
+						}?.let {
+							processMatchResult(it)
 						}
 					}
 				}
@@ -73,15 +74,12 @@ object ExtractStrings {
 		JMenuItem("Response Body (Regex)").apply {
 			addActionListener {
 				showPopup("Insert Regex to Extract") { pattern ->
-					requestResponses.mapNotNull {
-						val regex = if (pattern.isNotBlank()) Regex(pattern) else Regex(".*")
-						it.takeIf { it.hasResponse() }?.response()?.bodyToString()?.let {
+					val regex = if (pattern.isNotBlank()) Regex(pattern) else Regex(".*")
+					requestResponses.mapNotNull { rr ->
+						rr.takeIf { it.hasResponse() }?.response()?.bodyToString()?.let {
 							regex.find(it)
 						}?.let {
-							if (it.groupValues.size > 1)
-								it.groupValues.drop(1).map { it.replace("\t", "\\t") }.joinToString("\t")
-							else
-								it.groupValues.getOrNull(0)?.replace("\t", "\\t")
+							processMatchResult(it)
 						}
 					}
 				}
@@ -113,7 +111,7 @@ object ExtractStrings {
 				var values = callback(textField.text)
 				// make distinct if needed and copy to clipboard
 				values = if (removeDuplicatesCheckbox.isSelected) values.distinct() else values
-				stringToClipboard(values.map { it.replace(newlineRegex, "\\n") }.joinToString("\n"))
+				stringToClipboard(values.joinToString("\n") { it.replace(newlineRegex, "\\n") })
 				dialog.dispose()
 			}
 			buttonPanel.add(this)
@@ -133,5 +131,12 @@ object ExtractStrings {
 		dialog.pack()
 		dialog.setLocationRelativeTo(null)
 		dialog.isVisible = true
+	}
+
+	private fun processMatchResult(match: MatchResult): String? {
+		return if (match.groupValues.size > 1)
+			match.groupValues.drop(1).joinToString("\t") { it.replace("\t", "\\t") }
+		else
+			match.groupValues.getOrNull(0)?.replace("\t", "\\t")
 	}
 }

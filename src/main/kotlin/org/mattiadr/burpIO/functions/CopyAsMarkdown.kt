@@ -47,7 +47,7 @@ object CopyAsMarkdown {
 		val middle = "\n```\n\n**Response:**\n```HTTP\n"
 		val end = "\n```\n"
 
-		requestResponseList.map { requestResponse ->
+		requestResponseList.joinToString("\n\n\n") { requestResponse ->
 			// strip headers if needed
 			val request = if (hideHeaders)
 				requestResponse.request()?.withRemovedHeaders(uninterestingHeaders)
@@ -60,8 +60,6 @@ object CopyAsMarkdown {
 
 			// build markdown
 			start + (request?.toString() ?: "") + middle + (response?.toString() ?: "") + end
-		}
-			.joinToString("\n\n\n")
-			.let { stringToClipboard(it) }
+		}.let { stringToClipboard(it) }
 	}
 }
