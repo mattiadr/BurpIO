@@ -7,6 +7,7 @@ import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider
 import org.mattiadr.burpIO.functions.CopyAsMarkdown
 import org.mattiadr.burpIO.functions.ExtractStrings
 import org.mattiadr.burpIO.functions.SaveResponseBody
+import org.mattiadr.burpIO.functions.SecureHeaders
 import java.awt.Component
 import java.util.Collections
 import kotlin.jvm.optionals.getOrNull
@@ -19,6 +20,7 @@ class BurpIOMenuItemProvider(api: MontoyaApi) : ContextMenuItemsProvider {
 	init {
 		SaveResponseBody.initApi(api)
 		ExtractStrings.initApi(api)
+		SecureHeaders.initApi(api)
 	}
 
 	override fun provideMenuItems(event: ContextMenuEvent?): MutableList<Component> {
@@ -33,6 +35,7 @@ class BurpIOMenuItemProvider(api: MontoyaApi) : ContextMenuItemsProvider {
 			CopyAsMarkdown.setupMenuItems(menuItems, it)
 			SaveResponseBody.setupMenuItems(menuItems, it)
 			ExtractStrings.setupMenuItems(menuItems, it)
+			SecureHeaders.setupMenuItems(menuItems, it)
 		}
 
 		// invoked when right-clicking in the message editor
@@ -42,6 +45,7 @@ class BurpIOMenuItemProvider(api: MontoyaApi) : ContextMenuItemsProvider {
 			CopyAsMarkdown.setupMenuItems(menuItems, it)
 			SaveResponseBody.setupMenuItems(menuItems, it)
 			ExtractStrings.setupMenuItems(menuItems, it)
+			SecureHeaders.setupMenuItems(menuItems,it)
 		}
 
 		return menuItems
