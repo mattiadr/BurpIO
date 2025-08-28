@@ -3,6 +3,7 @@ package org.mattiadr.burpIO.functions
 import burp.api.montoya.MontoyaApi
 import burp.api.montoya.http.message.HttpRequestResponse
 import burp.api.montoya.ui.swing.SwingUtils
+import org.mattiadr.burpIO.stringToClipboard
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.FlowLayout
@@ -35,9 +36,11 @@ object ExtractStrings {
 			extractSubMenu.add(this)
 		}
 		JMenuItem("Path without Query").apply {
-			addActionListener { stringToClipboard(requestResponses.joinToString("\n") {
-				it.request().pathWithoutQuery()
-			}) }
+			addActionListener {
+				stringToClipboard(requestResponses.joinToString("\n") {
+					it.request().pathWithoutQuery()
+				})
+			}
 			extractSubMenu.add(this)
 		}
 		JMenuItem("Request Header").apply {

@@ -1,4 +1,4 @@
-package org.mattiadr.burpIO.functions
+package org.mattiadr.burpIO
 
 import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard
