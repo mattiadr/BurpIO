@@ -43,6 +43,14 @@ object ExtractStrings {
 			}
 			extractSubMenu.add(this)
 		}
+		JMenuItem("Request Parameter").apply {
+			addActionListener {
+				showPopup("Insert Parameter to Extract") { parameter ->
+					requestResponses.mapNotNull { it.request().parameterValue(parameter) }
+				}
+			}
+			extractSubMenu.add(this)
+		}
 		JMenuItem("Request Header").apply {
 			addActionListener {
 				showPopup("Insert Header to Extract") { header ->
