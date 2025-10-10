@@ -1,6 +1,5 @@
 package org.mattiadr.burpIO.functions
 
-import burp.api.montoya.http.message.HttpHeader
 import burp.api.montoya.http.message.HttpRequestResponse
 import org.mattiadr.burpIO.stringToClipboard
 import java.awt.Component
@@ -8,59 +7,70 @@ import javax.swing.JMenuItem
 
 object CopyAsMarkdown {
 
-	private val uninterestingHeaders = listOf(
-		"accept",
-		"accept-encoding",
-		"accept-language",
-		"if-modified-since",
-		"if-none-match",
-		"priority",
-		"sec-ch-ua",
-		"sec-ch-ua-arch",
-		"sec-ch-ua-bitness",
-		"sec-ch-ua-full-version",
-		"sec-ch-ua-mobile",
-		"sec-ch-ua-model",
-		"sec-ch-ua-platform",
-		"sec-ch-ua-platform-version",
-		"sec-ch-ua-wow64",
-		"sec-fetch-dest",
-		"sec-fetch-mode",
-		"sec-fetch-site",
-		"sec-fetch-user",
-		"upgrade-insecure-requests",
-		"x-requested-with",
-	).map(HttpHeader::httpHeader)
+	private const val MD_BEFORE = "**Request:**\n```HTTP\n"
+	private const val MD_MIDDLE = "\n```\n\n**Response:**\n```HTTP\n"
+	private const val MD_AFTER = "\n```\n"
+	private const val MD_SEPARATOR = "\n\n\n"
+
+	private val REQUEST_HEADERS = listOf(
+		"host",
+		"authorization",
+		"cookie",
+	)
+
+	private val RESPONSE_HEADERS = listOf(
+		"date",
+		"set-cookie",
+	)
 
 	fun setupMenuItems(menuItems: MutableList<Component>, requestResponses: List<HttpRequestResponse>) {
 		JMenuItem("Copy as Markdown").apply {
-			addActionListener { copyAsMarkdown(requestResponses, false) }
+			addActionListener { copyFull(requestResponses) }
 			menuItems.add(this)
 		}
 		JMenuItem("Copy as Markdown (Fewer Headers)").apply {
-			addActionListener { copyAsMarkdown(requestResponses, true) }
+			addActionListener { copyFewerHeaders(requestResponses) }
 			menuItems.add(this)
 		}
 	}
 
-	private fun copyAsMarkdown(requestResponseList: List<HttpRequestResponse>, hideHeaders: Boolean) {
-		val start = "**Request:**\n```HTTP\n"
-		val middle = "\n```\n\n**Response:**\n```HTTP\n"
-		val end = "\n```\n"
-
-		requestResponseList.joinToString("\n\n\n") { requestResponse ->
-			// strip headers if needed
-			val request = if (hideHeaders)
-				requestResponse.request()?.withRemovedHeaders(uninterestingHeaders)
-			else
-				requestResponse.request()
-			val response = if (hideHeaders)
-				requestResponse.response()?.withRemovedHeaders(uninterestingHeaders)
-			else
-				requestResponse.response()
-
-			// build markdown
-			start + (request?.toString() ?: "") + middle + (response?.toString() ?: "") + end
+	private fun copyFull(requestResponseList: List<HttpRequestResponse>) {
+		requestResponseList.joinToString(MD_SEPARATOR) {
+			MD_BEFORE + (it.request()?.toString() ?: "") + MD_MIDDLE + (it.response()?.toString() ?: "") + MD_AFTER
 		}.let { stringToClipboard(it) }
 	}
+
+	private fun copyFewerHeaders(requestResponseList: List<HttpRequestResponse>) {
+		requestResponseList.joinToString(MD_SEPARATOR) { requestResponse ->
+			val request = requestResponse.request()
+			val reqText = request?.toString()
+			val reqLine = reqText?.substring(0, reqText.indexOf("\n") + 1)
+			val response = requestResponse.response()
+			val resText = response?.toString()
+			val resLine = resText?.substring(0, resText.indexOf("\n") + 1)
+
+			buildString {
+				append(MD_BEFORE)
+				if (reqLine != null) {
+					append(reqLine)
+					request.headers().mapNotNull {
+						if (it.name().lowercase() in REQUEST_HEADERS) it.toString() else null
+					}.joinToString("\n").let { append(it) }
+					append("\n[...]\n\n")
+					append(request.bodyToString())
+				}
+				append(MD_MIDDLE)
+				if (resLine != null) {
+					append(resLine)
+					response.headers().mapNotNull {
+						if (it.name().lowercase() in RESPONSE_HEADERS) it.toString() else null
+					}.joinToString("\n").let { append(it) }
+					append("\n[...]\n\n")
+					append(response.bodyToString())
+				}
+				append(MD_AFTER)
+			}
+		}.let { stringToClipboard(it) }
+	}
+
 }
