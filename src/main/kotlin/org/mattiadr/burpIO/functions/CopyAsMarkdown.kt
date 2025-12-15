@@ -7,10 +7,25 @@ import javax.swing.JMenuItem
 
 object CopyAsMarkdown {
 
-	private const val MD_BEFORE = "**Request:**\n```HTTP\n"
-	private const val MD_MIDDLE = "\n```\n\n**Response:**\n```HTTP\n"
-	private const val MD_AFTER = "\n```\n"
-	private const val MD_SEPARATOR = "\n\n\n"
+	private enum class MdSyntax(
+		val before: String,
+		val middle: String,
+		val after: String,
+		val separator: String,
+	) {
+		MARKDOWN(
+			"**Request:**\n```HTTP\n",
+			"\n```\n\n**Response:**\n```HTTP\n",
+			"\n```\n",
+			"\n\n\n"
+		),
+		DRADIS(
+			"*Request:*\n\nbc.. ",
+			"\n\np. *Response:*\n\nbc.. ",
+			"\n\np. \n\n",
+			""
+		)
+	}
 
 	private val REQUEST_HEADERS = listOf(
 		"host",
@@ -32,16 +47,24 @@ object CopyAsMarkdown {
 			addActionListener { copyFewerHeaders(requestResponses) }
 			menuItems.add(this)
 		}
+		JMenuItem("Copy as Dradis").apply {
+			addActionListener { copyFull(requestResponses, MdSyntax.DRADIS) }
+			menuItems.add(this)
+		}
+		JMenuItem("Copy as Dradis (Fewer Headers)").apply {
+			addActionListener { copyFewerHeaders(requestResponses, MdSyntax.DRADIS) }
+			menuItems.add(this)
+		}
 	}
 
-	private fun copyFull(requestResponseList: List<HttpRequestResponse>) {
-		requestResponseList.joinToString(MD_SEPARATOR) {
-			MD_BEFORE + (it.request()?.toString() ?: "") + MD_MIDDLE + (it.response()?.toString() ?: "") + MD_AFTER
+	private fun copyFull(requestResponseList: List<HttpRequestResponse>, syntax: MdSyntax = MdSyntax.MARKDOWN) {
+		requestResponseList.joinToString(syntax.separator) {
+			syntax.before + (it.request()?.toString() ?: "") + syntax.middle + (it.response()?.toString() ?: "") + syntax.after
 		}.let { stringToClipboard(it) }
 	}
 
-	private fun copyFewerHeaders(requestResponseList: List<HttpRequestResponse>) {
-		requestResponseList.joinToString(MD_SEPARATOR) { requestResponse ->
+	private fun copyFewerHeaders(requestResponseList: List<HttpRequestResponse>, syntax: MdSyntax = MdSyntax.MARKDOWN) {
+		requestResponseList.joinToString(syntax.separator) { requestResponse ->
 			val request = requestResponse.request()
 			val reqText = request?.toString()
 			val reqLine = reqText?.substring(0, reqText.indexOf("\n") + 1)
@@ -50,7 +73,7 @@ object CopyAsMarkdown {
 			val resLine = resText?.substring(0, resText.indexOf("\n") + 1)
 
 			buildString {
-				append(MD_BEFORE)
+				append(syntax.before)
 				if (reqLine != null) {
 					append(reqLine)
 					request.headers().mapNotNull {
@@ -59,7 +82,7 @@ object CopyAsMarkdown {
 					append("\n[...]\n\n")
 					append(request.bodyToString())
 				}
-				append(MD_MIDDLE)
+				append(syntax.middle)
 				if (resLine != null) {
 					append(resLine)
 					response.headers().mapNotNull {
@@ -68,7 +91,7 @@ object CopyAsMarkdown {
 					append("\n[...]\n\n")
 					append(response.bodyToString())
 				}
-				append(MD_AFTER)
+				append(syntax.after)
 			}
 		}.let { stringToClipboard(it) }
 	}
