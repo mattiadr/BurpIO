@@ -1,12 +1,14 @@
 package org.mattiadr.burpIO
 
 import burp.api.montoya.MontoyaApi
+import burp.api.montoya.http.message.HttpRequestResponse
 import burp.api.montoya.logging.Logging
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider
 import org.mattiadr.burpIO.functions.CopyAsMarkdown
 import org.mattiadr.burpIO.functions.ExtractStrings
 import org.mattiadr.burpIO.functions.SaveResponseBody
+import org.mattiadr.burpIO.functions.SecureHeaders
 import java.awt.Component
 import java.util.Collections
 import kotlin.jvm.optionals.getOrNull
@@ -17,6 +19,7 @@ class BurpIOMenuItemProvider(api: MontoyaApi) : ContextMenuItemsProvider {
 	private val logging: Logging = api.logging()
 
 	init {
+		SecureHeaders.initApi(api)
 		SaveResponseBody.initApi(api)
 		ExtractStrings.initApi(api)
 	}
@@ -29,21 +32,23 @@ class BurpIOMenuItemProvider(api: MontoyaApi) : ContextMenuItemsProvider {
 		// invoked when right-clicking in request/response lists
 		event.selectedRequestResponses()?.let {
 			if (it.isEmpty()) return@let
-
-			CopyAsMarkdown.setupMenuItems(menuItems, it)
-			SaveResponseBody.setupMenuItems(menuItems, it)
-			ExtractStrings.setupMenuItems(menuItems, it)
+			setupMenuItems(menuItems, it)
 		}
 
 		// invoked when right-clicking in the message editor
 		event.messageEditorRequestResponse()?.getOrNull()?.let { messageEditorRequestResponse ->
 			val it = listOf(messageEditorRequestResponse.requestResponse())
-
-			CopyAsMarkdown.setupMenuItems(menuItems, it)
-			SaveResponseBody.setupMenuItems(menuItems, it)
-			ExtractStrings.setupMenuItems(menuItems, it)
+			setupMenuItems(menuItems, it)
 		}
 
 		return menuItems
 	}
+
+	private fun setupMenuItems(menuItems: MutableList<Component>, requestResponses: List<HttpRequestResponse>) {
+		CopyAsMarkdown.setupMenuItems(menuItems, requestResponses)
+		SecureHeaders.setupMenuItems(menuItems, requestResponses)
+		SaveResponseBody.setupMenuItems(menuItems, requestResponses)
+		ExtractStrings.setupMenuItems(menuItems, requestResponses)
+	}
+
 }
