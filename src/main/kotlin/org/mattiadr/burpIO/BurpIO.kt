@@ -8,13 +8,12 @@ import javax.swing.JMenuItem
 
 class BurpIO : BurpExtension {
 
-	private var api: MontoyaApi? = null
-
-	// settings
+	// storage
 	var autoRepeater: Boolean = false
 
 	override fun initialize(api: MontoyaApi?) {
-		this.api = api!!
+		AppContext.init(api!!)
+
 		api.extension().setName("BurpIO")
 
 		val menuItemProvider = BurpIOMenuItemProvider(api)
@@ -22,6 +21,8 @@ class BurpIO : BurpExtension {
 
 		val httpHandler = BurpIOHttpHandler(api, this)
 		api.http().registerHttpHandler(httpHandler)
+
+		BurpIOQuickSession.initHandlers()
 
 		// top menu
 		val topMenu = JMenu("BurpIO")
