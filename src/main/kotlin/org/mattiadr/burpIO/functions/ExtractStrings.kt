@@ -1,8 +1,7 @@
 package org.mattiadr.burpIO.functions
 
-import burp.api.montoya.MontoyaApi
 import burp.api.montoya.http.message.HttpRequestResponse
-import burp.api.montoya.ui.swing.SwingUtils
+import org.mattiadr.burpIO.AppContext
 import org.mattiadr.burpIO.stringToClipboard
 import java.awt.BorderLayout
 import java.awt.Component
@@ -21,12 +20,7 @@ import javax.swing.KeyStroke
 
 object ExtractStrings {
 
-	private lateinit var swingUtils: SwingUtils
 	private val newlineRegex = Regex("\r\n|\n|\r")
-
-	fun initApi(api: MontoyaApi) {
-		swingUtils = api.userInterface().swingUtils()
-	}
 
 	fun setupMenuItems(menuItems: MutableList<Component>, requestResponses: List<HttpRequestResponse>) {
 		val extractSubMenu = JMenu("Extract")
@@ -102,7 +96,7 @@ object ExtractStrings {
 	}
 
 	private fun showPopup(title: String, callback: (String) -> List<String>) {
-		val dialog = JDialog(swingUtils.suiteFrame(), title, true)
+		val dialog = JDialog(AppContext.swingUtils.suiteFrame(), title, true)
 		dialog.layout = BorderLayout()
 
 		// form panel

@@ -8,18 +8,15 @@ import javax.swing.JMenuItem
 
 class BurpIO : BurpExtension {
 
-	// storage
-	var autoRepeater: Boolean = false
-
 	override fun initialize(api: MontoyaApi?) {
 		AppContext.init(api!!)
 
 		api.extension().setName("BurpIO")
 
-		val menuItemProvider = BurpIOMenuItemProvider(api)
+		val menuItemProvider = BurpIOMenuItemProvider()
 		api.userInterface().registerContextMenuItemsProvider(menuItemProvider)
 
-		val httpHandler = BurpIOHttpHandler(api, this)
+		val httpHandler = BurpIOHttpHandler()
 		api.http().registerHttpHandler(httpHandler)
 
 		BurpIOQuickSession.initHandlers()
@@ -28,7 +25,7 @@ class BurpIO : BurpExtension {
 		val topMenu = JMenu("BurpIO")
 		JCheckBoxMenuItem("Auto Repeater").apply {
 			isSelected = false
-			addActionListener { autoRepeater = this.isSelected }
+			addActionListener { AppContext.autoRepeater = this.isSelected }
 			topMenu.add(this)
 		}
 		JMenuItem("Copy Auto Repeater Bruno Script").apply {

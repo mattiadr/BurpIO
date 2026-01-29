@@ -1,8 +1,7 @@
 package org.mattiadr.burpIO.functions
 
-import burp.api.montoya.MontoyaApi
 import burp.api.montoya.http.message.HttpRequestResponse
-import burp.api.montoya.ui.swing.SwingUtils
+import org.mattiadr.burpIO.AppContext
 import java.awt.Component
 import java.io.File
 import java.io.FileOutputStream
@@ -13,12 +12,7 @@ import javax.swing.JOptionPane
 
 object SaveResponseBody {
 
-	private lateinit var swingUtils: SwingUtils
 	private val filenameRegex = Regex("filename\\*?=\"?(.+?)(?:\"|$|\\s|;)")
-
-	fun initApi(api: MontoyaApi) {
-		swingUtils = api.userInterface().swingUtils()
-	}
 
 	fun setupMenuItems(menuItems: MutableList<Component>, requestResponses: List<HttpRequestResponse>) {
 		val requestResponsesWithBodies = requestResponses.filter { it.response() != null }
@@ -58,14 +52,14 @@ object SaveResponseBody {
 
 		JFileChooser().apply {
 			selectedFile = File(filename)
-			if (showSaveDialog(swingUtils.suiteFrame()) == JFileChooser.APPROVE_OPTION) {
+			if (showSaveDialog(AppContext.swingUtils.suiteFrame()) == JFileChooser.APPROVE_OPTION) {
 				try {
 					FileOutputStream(selectedFile).use {
 						it.write(requestResponse.response().body().bytes)
 					}
 				} catch (e: IOException) {
 					JOptionPane.showMessageDialog(
-						swingUtils.suiteFrame(), e.toString(), "Error while writing to file", JOptionPane.ERROR_MESSAGE
+						AppContext.swingUtils.suiteFrame(), e.toString(), "Error while writing to file", JOptionPane.ERROR_MESSAGE
 					)
 				}
 			}
@@ -76,7 +70,7 @@ object SaveResponseBody {
 		JFileChooser().apply {
 			dialogTitle = "Choose a Directory"
 			fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-			if (showSaveDialog(swingUtils.suiteFrame()) == JFileChooser.APPROVE_OPTION) {
+			if (showSaveDialog(AppContext.swingUtils.suiteFrame()) == JFileChooser.APPROVE_OPTION) {
 				try {
 					selectedFile.mkdirs()
 					// loop through requests and save them
@@ -95,10 +89,10 @@ object SaveResponseBody {
 					}
 
 					// done
-					JOptionPane.showMessageDialog(swingUtils.suiteFrame(), "Wrote ${requestResponseList.size} files.")
+					JOptionPane.showMessageDialog(AppContext.swingUtils.suiteFrame(), "Wrote ${requestResponseList.size} files.")
 				} catch (e: IOException) {
 					JOptionPane.showMessageDialog(
-						swingUtils.suiteFrame(), e.toString(), "Error while writing to file", JOptionPane.ERROR_MESSAGE
+						AppContext.swingUtils.suiteFrame(), e.toString(), "Error while writing to file", JOptionPane.ERROR_MESSAGE
 					)
 				}
 			}

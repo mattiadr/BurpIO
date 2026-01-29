@@ -6,7 +6,6 @@ import java.awt.Color
 import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
-import java.awt.geom.RoundRectangle2D
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -19,6 +18,7 @@ private val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
 fun stringToClipboard(string: String) {
 	val selection = StringSelection(string)
 	clipboard.setContents(selection, selection)
+	toast("📋  Copied to Clipboard")
 }
 
 private fun slideWindow(
