@@ -15,10 +15,10 @@ import javax.swing.Timer
 
 private val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
 
-fun stringToClipboard(string: String) {
+fun stringToClipboard(string: String, message: String = "Copied to Clipboard") {
 	val selection = StringSelection(string)
 	clipboard.setContents(selection, selection)
-	toast("📋  Copied to Clipboard")
+	toast("📋  $message")
 }
 
 private fun slideWindow(

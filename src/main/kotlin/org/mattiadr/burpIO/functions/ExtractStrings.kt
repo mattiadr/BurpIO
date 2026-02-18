@@ -39,54 +39,43 @@ object ExtractStrings {
 		}
 		JMenuItem("Request Parameter").apply {
 			addActionListener {
-				showPopup("Insert Parameter to Extract") { parameter ->
-					requestResponses.mapNotNull { it.request().parameterValue(parameter) }
+				showPopup("Insert Parameter to Extract", requestResponses) { rr, parameter ->
+					listOf(rr.request().parameterValue(parameter))
 				}
 			}
 			extractSubMenu.add(this)
 		}
 		JMenuItem("Request Header").apply {
 			addActionListener {
-				showPopup("Insert Header to Extract") { header ->
-					requestResponses.mapNotNull { it.request().headerValue(header) }
+				showPopup("Insert Header to Extract", requestResponses) { rr, header ->
+					listOf(rr.request().headerValue(header))
 				}
 			}
 			extractSubMenu.add(this)
 		}
 		JMenuItem("Request Body (Regex)").apply {
 			addActionListener {
-				showPopup("Insert Regex to Extract") { pattern ->
+				showPopup("Insert Regex to Extract", requestResponses) { rr, pattern ->
 					val regex = if (pattern.isNotBlank()) Regex(pattern) else Regex(".*")
-					requestResponses.mapNotNull { rr ->
-						rr.request().bodyToString().let {
-							regex.find(it)
-						}?.let {
-							processMatchResult(it)
-						}
-					}
+					regex.findAll(rr.request().bodyToString()).mapNotNull(::processMatchResult).toList()
 				}
 			}
 			extractSubMenu.add(this)
 		}
 		JMenuItem("Response Header").apply {
 			addActionListener {
-				showPopup("Insert Header to Extract") { header ->
-					requestResponses.mapNotNull { it.response().headerValue(header) }
+				showPopup("Insert Header to Extract", requestResponses) { rr, header ->
+					if (rr.hasResponse()) listOf(rr.response().headerValue(header)) else emptyList()
 				}
 			}
 			extractSubMenu.add(this)
 		}
 		JMenuItem("Response Body (Regex)").apply {
 			addActionListener {
-				showPopup("Insert Regex to Extract") { pattern ->
+				showPopup("Insert Regex to Extract", requestResponses) { rr, pattern ->
+					if (!rr.hasResponse()) return@showPopup emptyList()
 					val regex = if (pattern.isNotBlank()) Regex(pattern) else Regex(".*")
-					requestResponses.mapNotNull { rr ->
-						rr.takeIf { it.hasResponse() }?.response()?.bodyToString()?.let {
-							regex.find(it)
-						}?.let {
-							processMatchResult(it)
-						}
-					}
+					regex.findAll(rr.response().bodyToString()).mapNotNull(::processMatchResult).toList()
 				}
 			}
 			extractSubMenu.add(this)
@@ -95,7 +84,11 @@ object ExtractStrings {
 		menuItems.add(extractSubMenu)
 	}
 
-	private fun showPopup(title: String, callback: (String) -> List<String>) {
+	private fun showPopup(
+		title: String,
+		requestResponses: List<HttpRequestResponse>,
+		callback: (HttpRequestResponse, String) -> List<String>
+	) {
 		val dialog = JDialog(AppContext.swingUtils.suiteFrame(), title, true)
 		dialog.layout = BorderLayout()
 
@@ -103,20 +96,28 @@ object ExtractStrings {
 		val formPanel = JPanel(GridLayout(0, 1, 5, 5))
 		val textField = JTextField()
 		formPanel.add(textField)
-		val removeDuplicatesCheckbox = JCheckBox("Remove Duplicates")
-		removeDuplicatesCheckbox.isSelected = true
-		formPanel.add(removeDuplicatesCheckbox)
+		val uniqueURLsCheckbox = JCheckBox("Unique URLs")
+		formPanel.add(uniqueURLsCheckbox)
+		val uniqueResultsCheckbox = JCheckBox("Unique Results")
+		uniqueResultsCheckbox.isSelected = true
+		formPanel.add(uniqueResultsCheckbox)
 		dialog.add(formPanel, BorderLayout.CENTER)
 
 		// button panel
 		val buttonPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
 		JButton("OK").apply {
-			addActionListener {
-				// invoke callback to collect data
-				var values = callback(textField.text)
-				// make distinct if needed and copy to clipboard
-				values = if (removeDuplicatesCheckbox.isSelected) values.distinct() else values
-				stringToClipboard(values.joinToString("\n") { it.replace(newlineRegex, "\\n") })
+			addActionListener { _ ->
+				// make requestResponses unique by url if needed
+				val requestResponses = if (uniqueURLsCheckbox.isSelected) requestResponses.distinctBy {
+					it.request().url()
+				} else requestResponses
+				// invoke callback
+				var extractedValues: List<String> = requestResponses.flatMap { callback(it, textField.text) }
+				// make distinct if needed
+				extractedValues = if (uniqueResultsCheckbox.isSelected) extractedValues.distinct() else extractedValues
+				// copy to clipboard
+				val text = extractedValues.joinToString("\n") { it.replace(newlineRegex, "\\n") }
+				stringToClipboard(text, "Copied ${extractedValues.size} lines to Clipboard")
 				dialog.dispose()
 			}
 			buttonPanel.add(this)
