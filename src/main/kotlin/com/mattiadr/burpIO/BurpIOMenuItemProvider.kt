@@ -20,7 +20,7 @@ class BurpIOMenuItemProvider : ContextMenuItemsProvider {
 		event.selectedRequestResponses()?.let {
 			if (it.isEmpty()) return@let
 
-			CopyAsMarkdown.setupMenuItems(menuItems, it)
+			CopyAsMarkdown.setupListMenuItems(menuItems, it)
 			SaveResponseBody.setupMenuItems(menuItems, it)
 			ExtractStrings.setupMenuItems(menuItems, it)
 		}
@@ -29,7 +29,7 @@ class BurpIOMenuItemProvider : ContextMenuItemsProvider {
 		event.messageEditorRequestResponse()?.getOrNull()?.let { messageEditorRequestResponse ->
 			val it = listOf(messageEditorRequestResponse.requestResponse())
 
-			CopyAsMarkdown.setupMenuItems(menuItems, it)
+			CopyAsMarkdown.setupEditorMenuItems(menuItems, messageEditorRequestResponse)
 			SaveResponseBody.setupMenuItems(menuItems, it)
 			ExtractStrings.setupMenuItems(menuItems, it)
 		}
