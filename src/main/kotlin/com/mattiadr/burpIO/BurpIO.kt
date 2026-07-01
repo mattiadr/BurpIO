@@ -1,4 +1,4 @@
-package org.mattiadr.burpIO
+package com.mattiadr.burpIO
 
 import burp.api.montoya.BurpExtension
 import burp.api.montoya.MontoyaApi
@@ -6,6 +6,7 @@ import javax.swing.JCheckBoxMenuItem
 import javax.swing.JMenu
 import javax.swing.JMenuItem
 
+@Suppress("unused")
 class BurpIO : BurpExtension {
 
 	override fun initialize(api: MontoyaApi?) {

@@ -1,4 +1,4 @@
-package org.mattiadr.burpIO
+package com.mattiadr.burpIO
 
 import burp.api.montoya.MontoyaApi
 import burp.api.montoya.ui.swing.SwingUtils

@@ -1,4 +1,4 @@
-package org.mattiadr.burpIO
+package com.mattiadr.burpIO
 
 import burp.api.montoya.http.handler.HttpHandler
 import burp.api.montoya.http.handler.HttpRequestToBeSent

@@ -1,8 +1,8 @@
-package org.mattiadr.burpIO.functions
+package com.mattiadr.burpIO.functions
 
 import burp.api.montoya.http.message.HttpRequestResponse
-import org.mattiadr.burpIO.AppContext
-import org.mattiadr.burpIO.stringToClipboard
+import com.mattiadr.burpIO.AppContext
+import com.mattiadr.burpIO.stringToClipboard
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.FlowLayout
