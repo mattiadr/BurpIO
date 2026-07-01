@@ -9,7 +9,7 @@ import java.awt.Component
 import java.util.Collections
 import kotlin.jvm.optionals.getOrNull
 
-class BurpIOMenuItemProvider() : ContextMenuItemsProvider {
+class BurpIOMenuItemProvider : ContextMenuItemsProvider {
 
 	override fun provideMenuItems(event: ContextMenuEvent?): MutableList<Component> {
 		event ?: return Collections.emptyList()

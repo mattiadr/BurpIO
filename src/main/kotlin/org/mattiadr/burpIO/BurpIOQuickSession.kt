@@ -7,12 +7,12 @@ import burp.api.montoya.ui.hotkey.HotKey
 
 object BurpIOQuickSession {
 
-	private val STORAGE_SIZE = 10
+	private const val STORAGE_SIZE = 10
 	private val SESSION_HEADERS = listOf("Authorization", "Cookie")
 
 	private val sessionStorage: MutableList<List<HttpHeader>?> = MutableList(STORAGE_SIZE) { null }
 
-	fun initHandlers() {
+	fun setupHotKeys() {
 		val userInterface = AppContext.api.userInterface()
 		for (i in 0..9) {
 			// register store handler

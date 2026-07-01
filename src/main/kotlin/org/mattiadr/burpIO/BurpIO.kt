@@ -13,15 +13,18 @@ class BurpIO : BurpExtension {
 
 		api.extension().setName("BurpIO")
 
+		// setup context menu
 		val menuItemProvider = BurpIOMenuItemProvider()
 		api.userInterface().registerContextMenuItemsProvider(menuItemProvider)
 
+		// setup http handler
 		val httpHandler = BurpIOHttpHandler()
 		api.http().registerHttpHandler(httpHandler)
 
-		BurpIOQuickSession.initHandlers()
+		// setup hotkeys
+		BurpIOQuickSession.setupHotKeys()
 
-		// top menu
+		// setup suite menu
 		val topMenu = JMenu("BurpIO")
 		JCheckBoxMenuItem("Auto Repeater").apply {
 			isSelected = false

@@ -27,7 +27,7 @@ private fun slideWindow(
 	startY: Int,
 	endX: Int,
 	endY: Int,
-	duration: Int,
+	duration: Int = 300,
 	callback: (JWindow) -> Unit
 ) {
 	val timer = Timer(15, null)
@@ -70,9 +70,9 @@ fun toast(message: String, duration: Int = 3000) {
 		val screen = Toolkit.getDefaultToolkit().screenSize
 		val x = (screen.width - window.width) / 2
 		window.isVisible = true
-		slideWindow(window, x, -window.height, x, 20, 300) {
+		slideWindow(window, x, -window.height, x, 20) {
 			Timer(duration) {
-				slideWindow(window, x, 20, x, -window.height, 300) {
+				slideWindow(window, x, 20, x, -window.height) {
 					window.dispose()
 				}
 			}.apply {
