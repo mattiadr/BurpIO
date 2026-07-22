@@ -4,6 +4,7 @@ import burp.api.montoya.ui.contextmenu.ContextMenuEvent
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider
 import com.mattiadr.burpIO.functions.CopyAsMarkdown
 import com.mattiadr.burpIO.functions.ExtractStrings
+import com.mattiadr.burpIO.functions.HistorySearch
 import com.mattiadr.burpIO.functions.SaveResponseBody
 import java.awt.Component
 import java.util.Collections
@@ -32,6 +33,7 @@ class BurpIOMenuItemProvider : ContextMenuItemsProvider {
 			CopyAsMarkdown.setupEditorMenuItems(menuItems, messageEditorRequestResponse)
 			SaveResponseBody.setupMenuItems(menuItems, it)
 			ExtractStrings.setupMenuItems(menuItems, it)
+			HistorySearch.setupMenuItems(menuItems, messageEditorRequestResponse)
 		}
 
 		return menuItems
