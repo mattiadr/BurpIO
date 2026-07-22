@@ -11,8 +11,9 @@ import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Toolkit
 import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.util.regex.Pattern
-import javax.swing.AbstractCellEditor
 import javax.swing.BoxLayout
 import javax.swing.ButtonGroup
 import javax.swing.JButton
@@ -27,11 +28,11 @@ import javax.swing.JScrollPane
 import javax.swing.JTable
 import javax.swing.JTextField
 import javax.swing.KeyStroke
+import javax.swing.SwingConstants
 import javax.swing.SwingWorker
 import javax.swing.border.EmptyBorder
 import javax.swing.table.AbstractTableModel
-import javax.swing.table.TableCellEditor
-import javax.swing.table.TableCellRenderer
+import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
@@ -159,32 +160,54 @@ object HistorySearch {
 		table.rowHeight = 24
 		table.fillsViewportHeight = true
 		table.preferredScrollableViewportSize = Dimension(680, 320)
+		// drop the vertical grid lines in the body; the header keeps its own column separators
+		table.showVerticalLines = false
+		// left-align the header labels
+		(table.tableHeader.defaultRenderer as? DefaultTableCellRenderer)?.horizontalAlignment = SwingConstants.LEFT
 
-		// fixed widths for id and the highlight button, host/path take the rest
+		// column sizing: id and method stay narrow, path gets the room
 		table.columnModel.getColumn(0).apply {
 			preferredWidth = 50
 			maxWidth = 80
 		}
-		table.columnModel.getColumn(3).apply {
-			preferredWidth = 120
-			minWidth = 120
-			maxWidth = 120
-			cellRenderer = ButtonRenderer("Highlight")
-			cellEditor = ButtonEditor("Highlight") { row ->
-				model.resultAt(row).annotations().setHighlightColor(HighlightColor.RED)
+		table.columnModel.getColumn(1).preferredWidth = 200
+		table.columnModel.getColumn(2).apply {
+			preferredWidth = 70
+			maxWidth = 90
+		}
+		table.columnModel.getColumn(3).preferredWidth = 400
+
+		// double-click highlights just that row
+		table.addMouseListener(object : MouseAdapter() {
+			override fun mouseClicked(e: MouseEvent) {
+				if (e.clickCount != 2) return
+				val viewRow = table.rowAtPoint(e.point)
+				if (viewRow < 0) return
+				model.resultAt(table.convertRowIndexToModel(viewRow)).annotations().setHighlightColor(HighlightColor.RED)
 				table.repaint()
 			}
-		}
+		})
 
 		frame.add(JScrollPane(table), BorderLayout.CENTER)
 
 		// --- south bar ---
 		val statusLabel = JLabel(" ")
+		val highlightButton = JButton("Highlight Selected").apply {
+			addActionListener {
+				table.selectedRows.forEach { viewRow ->
+					model.resultAt(table.convertRowIndexToModel(viewRow)).annotations().setHighlightColor(HighlightColor.RED)
+				}
+				table.repaint()
+			}
+		}
 		val closeButton = JButton("Close").apply { addActionListener { frame.dispose() } }
 		val southPanel = JPanel(BorderLayout()).apply {
 			border = EmptyBorder(2, 5, 2, 5)
 			add(statusLabel, BorderLayout.WEST)
-			add(JPanel(FlowLayout(FlowLayout.RIGHT)).apply { add(closeButton) }, BorderLayout.EAST)
+			add(JPanel(FlowLayout(FlowLayout.RIGHT)).apply {
+				add(highlightButton)
+				add(closeButton)
+			}, BorderLayout.EAST)
 		}
 		frame.add(southPanel, BorderLayout.SOUTH)
 
@@ -311,10 +334,10 @@ object HistorySearch {
 		return field
 	}
 
-	/** Backing model for the results table. Columns: ID, Host, Path, Highlight button. */
+	/** Backing model for the results table. Columns: ID, Host, Method, Path. */
 	private class ResultsTableModel : AbstractTableModel() {
 
-		private val columns = arrayOf("ID", "Host", "Path", "")
+		private val columns = arrayOf("ID", "Host", "Method", "Path")
 		private var results: List<ProxyHttpRequestResponse> = emptyList()
 
 		fun setResults(newResults: List<ProxyHttpRequestResponse>) {
@@ -330,64 +353,14 @@ object HistorySearch {
 
 		override fun getColumnName(column: Int): String = columns[column]
 
-		override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = columnIndex == 3
-
 		override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
 			val result = results[rowIndex]
 			return when (columnIndex) {
 				0 -> result.id()
 				1 -> result.request().headerValue("Host") ?: ""
-				2 -> result.request().pathWithoutQuery()
-				else -> "Highlight"
+				2 -> result.request().method()
+				else -> result.request().pathWithoutQuery()
 			}
 		}
-	}
-
-	/** Renders a static button in a table cell. */
-	private class ButtonRenderer(text: String) : JButton(text), TableCellRenderer {
-
-		init {
-			isOpaque = true
-		}
-
-		override fun getTableCellRendererComponent(
-			table: JTable,
-			value: Any?,
-			isSelected: Boolean,
-			hasFocus: Boolean,
-			row: Int,
-			column: Int,
-		): Component = this
-	}
-
-	/** Editor turning a table cell into a clickable button. */
-	private class ButtonEditor(
-		private val label: String,
-		private val onClick: (Int) -> Unit,
-	) : AbstractCellEditor(), TableCellEditor {
-
-		private val button = JButton(label)
-		private var editingRow = -1
-
-		init {
-			button.addActionListener {
-				val row = editingRow
-				fireEditingStopped()
-				if (row >= 0) onClick(row)
-			}
-		}
-
-		override fun getTableCellEditorComponent(
-			table: JTable,
-			value: Any?,
-			isSelected: Boolean,
-			row: Int,
-			column: Int,
-		): Component {
-			editingRow = row
-			return button
-		}
-
-		override fun getCellEditorValue(): Any = label
 	}
 }
