@@ -2,6 +2,10 @@ package com.mattiadr.burpIO
 
 import burp.api.montoya.BurpExtension
 import burp.api.montoya.MontoyaApi
+import burp.api.montoya.ui.swing.SwingUtils
+import com.mattiadr.burpIO.modules.BurpIOHttpHandler
+import com.mattiadr.burpIO.modules.BurpIOMenuItemProvider
+import com.mattiadr.burpIO.modules.BurpIOQuickSession
 import javax.swing.JCheckBoxMenuItem
 import javax.swing.JMenu
 import javax.swing.JMenuItem
@@ -42,4 +46,16 @@ class BurpIO : BurpExtension {
 		api.userInterface().registerSettingsPanel(Settings.buildSettingsPanel())
 	}
 
+}
+
+object AppContext {
+	lateinit var api: MontoyaApi private set
+	lateinit var swingUtils: SwingUtils private set
+
+	var autoRepeater: Boolean = false
+
+	fun init(api: MontoyaApi) {
+		this.api = api
+		this.swingUtils = api.userInterface().swingUtils()
+	}
 }

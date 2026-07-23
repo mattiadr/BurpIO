@@ -4,7 +4,7 @@ import burp.api.montoya.ui.settings.SettingsPanelBuilder
 import burp.api.montoya.ui.settings.SettingsPanelPersistence
 import burp.api.montoya.ui.settings.SettingsPanelSetting
 import burp.api.montoya.ui.settings.SettingsPanelWithData
-import com.mattiadr.burpIO.functions.CopyAsMarkdown
+import com.mattiadr.burpIO.contextMenu.CopyAsMarkdown
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 

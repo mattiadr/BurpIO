@@ -1,11 +1,11 @@
-package com.mattiadr.burpIO
+package com.mattiadr.burpIO.modules
 
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider
-import com.mattiadr.burpIO.functions.CopyAsMarkdown
-import com.mattiadr.burpIO.functions.ExtractStrings
-import com.mattiadr.burpIO.functions.HistorySearch
-import com.mattiadr.burpIO.functions.SaveResponseBody
+import com.mattiadr.burpIO.contextMenu.CopyAsMarkdown
+import com.mattiadr.burpIO.contextMenu.ExtractStrings
+import com.mattiadr.burpIO.contextMenu.HistorySearch
+import com.mattiadr.burpIO.contextMenu.SaveResponseBody
 import java.awt.Component
 import java.util.Collections
 import kotlin.jvm.optionals.getOrNull

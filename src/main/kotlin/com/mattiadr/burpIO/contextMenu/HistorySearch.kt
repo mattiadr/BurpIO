@@ -1,4 +1,4 @@
-package com.mattiadr.burpIO.functions
+package com.mattiadr.burpIO.contextMenu
 
 import burp.api.montoya.core.HighlightColor
 import burp.api.montoya.http.message.HttpRequestResponse

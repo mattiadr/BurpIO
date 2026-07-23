@@ -1,9 +1,11 @@
-package com.mattiadr.burpIO
+package com.mattiadr.burpIO.modules
 
 import burp.api.montoya.http.message.HttpHeader
 import burp.api.montoya.http.message.requests.HttpRequest
 import burp.api.montoya.ui.contextmenu.MessageEditorHttpRequestResponse
 import burp.api.montoya.ui.hotkey.HotKey
+import com.mattiadr.burpIO.AppContext
+import com.mattiadr.burpIO.toast
 
 object BurpIOQuickSession {
 

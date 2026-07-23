@@ -1,10 +1,11 @@
-package com.mattiadr.burpIO
+package com.mattiadr.burpIO.modules
 
 import burp.api.montoya.http.handler.HttpHandler
 import burp.api.montoya.http.handler.HttpRequestToBeSent
 import burp.api.montoya.http.handler.HttpResponseReceived
 import burp.api.montoya.http.handler.RequestToBeSentAction
 import burp.api.montoya.http.handler.ResponseReceivedAction
+import com.mattiadr.burpIO.AppContext
 
 class BurpIOHttpHandler() : HttpHandler {
 

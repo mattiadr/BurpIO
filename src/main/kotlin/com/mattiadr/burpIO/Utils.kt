@@ -22,6 +22,12 @@ fun stringToClipboard(string: String, message: String = "Copied to Clipboard") {
 	toast("📋  $message")
 }
 
+fun toast(message: String, duration: Int = 3000) {
+	SwingUtilities.invokeLater {
+		ToastManager.show(message, duration)
+	}
+}
+
 private object ToastManager {
 
 	const val TOP_OFFSET = 40
@@ -132,11 +138,5 @@ private object ToastManager {
 			slideWindow(window, x, -window.height, x, TOP_OFFSET)
 			scheduleRemoval(window, container, messagePanel, duration)
 		}
-	}
-}
-
-fun toast(message: String, duration: Int = 3000) {
-	SwingUtilities.invokeLater {
-		ToastManager.show(message, duration)
 	}
 }
