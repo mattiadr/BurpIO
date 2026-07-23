@@ -12,19 +12,19 @@ import javax.swing.JMenuItem
 
 object CopyAsMarkdown {
 
-	private enum class MdSyntax(
+	enum class MdFlavor(
 		val before: String,     // before request
 		val middle: String,     // between request and response
 		val after: String,      // after response
 		val separator: String,  // between different requests
 	) {
-		MARKDOWN(
+		Markdown(
 			"**Request:**\n```HTTP\n",
 			"\n```\n\n**Response:**\n```HTTP\n",
 			"\n```\n",
 			"\n\n\n"
 		),
-		DRADIS(
+		Dradis(
 			"*Request:*\n\nbc.. ",
 			"\n\np. *Response:*\n\nbc.. ",
 			"\n\np. \n\n",
@@ -35,10 +35,6 @@ object CopyAsMarkdown {
 	fun setupListMenuItems(menuItems: MutableList<Component>, requestResponses: List<HttpRequestResponse>) {
 		JMenuItem("Copy as Markdown (Full)").apply {
 			addActionListener { copyFull(requestResponses) }
-			menuItems.add(this)
-		}
-		JMenuItem("Copy as Dradis (Full)").apply {
-			addActionListener { copyFull(requestResponses, MdSyntax.DRADIS) }
 			menuItems.add(this)
 		}
 	}
@@ -52,23 +48,17 @@ object CopyAsMarkdown {
 			addActionListener { copyFull(listOf(messageEditorHttpRequestResponse.requestResponse())) }
 			menuItems.add(this)
 		}
-		JMenuItem("Copy as Dradis").apply {
-			addActionListener { copyTruncated(messageEditorHttpRequestResponse, MdSyntax.DRADIS) }
-			menuItems.add(this)
-		}
-		JMenuItem("Copy as Dradis (Full)").apply {
-			addActionListener { copyFull(listOf(messageEditorHttpRequestResponse.requestResponse()), MdSyntax.DRADIS) }
-			menuItems.add(this)
-		}
 	}
 
-	private fun copyFull(requestResponseList: List<HttpRequestResponse>, syntax: MdSyntax = MdSyntax.MARKDOWN) {
-		requestResponseList.joinToString(syntax.separator) {
-			syntax.before + (it.request()?.toString() ?: "") + syntax.middle + (it.response()?.toString() ?: "") + syntax.after
+	private fun copyFull(requestResponseList: List<HttpRequestResponse>) {
+		val flavor = MdFlavor.valueOf(Settings.copyAsMarkdown_mdFlavor)
+		requestResponseList.joinToString(flavor.separator) {
+			flavor.before + (it.request()?.toString() ?: "") + flavor.middle + (it.response()?.toString() ?: "") + flavor.after
 		}.let { stringToClipboard(it) }
 	}
 
-	private fun copyTruncated(messageEditorHttpRequestResponse: MessageEditorHttpRequestResponse, syntax: MdSyntax = MdSyntax.MARKDOWN) {
+	private fun copyTruncated(messageEditorHttpRequestResponse: MessageEditorHttpRequestResponse) {
+		val flavor = MdFlavor.valueOf(Settings.copyAsMarkdown_mdFlavor)
 		val requestHeaders = Settings.copyAsMarkdown_requestHeaders.split(",")
 		val responseHeaders = Settings.copyAsMarkdown_responseHeaders.split(",")
 
@@ -82,13 +72,13 @@ object CopyAsMarkdown {
 		val responseSelection = if (selectionContext == MessageEditorHttpRequestResponse.SelectionContext.RESPONSE) selectionOffsets else null
 
 		buildString {
-			append(syntax.before)
+			append(flavor.before)
 			append(truncateHttpMessage(request, requestHeaders, requestSelection))
-			append(syntax.middle)
+			append(flavor.middle)
 			if (requestResponse.hasResponse()) {
 				append(truncateHttpMessage(response, responseHeaders, responseSelection))
 			}
-			append(syntax.after)
+			append(flavor.after)
 		}.let { stringToClipboard(it) }
 	}
 

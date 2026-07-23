@@ -4,6 +4,7 @@ import burp.api.montoya.ui.settings.SettingsPanelBuilder
 import burp.api.montoya.ui.settings.SettingsPanelPersistence
 import burp.api.montoya.ui.settings.SettingsPanelSetting
 import burp.api.montoya.ui.settings.SettingsPanelWithData
+import com.mattiadr.burpIO.functions.CopyAsMarkdown
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -20,6 +21,10 @@ object Settings {
 	/**
 	 * Copy as Markdown Settings
 	 */
+	val copyAsMarkdown_mdFlavor: String by listSetting(
+		"Markdown Flavor", CopyAsMarkdown.MdFlavor.entries.map { it.name }, "Markdown",
+		"Which Markdown Flavor to use for wrapping Requests and Responses."
+	)
 	val copyAsMarkdown_requestHeaders: String by stringSetting(
 		"Request Headers", "Host,Authorization,Cookie",
 		"When copying as Markdown keep these Request Headers."
