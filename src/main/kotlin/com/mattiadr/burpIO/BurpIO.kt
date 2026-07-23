@@ -37,6 +37,9 @@ class BurpIO : BurpExtension {
 			topMenu.add(this)
 		}
 		api.userInterface().menuBar().registerMenu(topMenu)
+
+		// register settings
+		api.userInterface().registerSettingsPanel(Settings.buildSettingsPanel())
 	}
 
 }

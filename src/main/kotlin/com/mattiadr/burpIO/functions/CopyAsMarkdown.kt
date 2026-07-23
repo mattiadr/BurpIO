@@ -5,14 +5,12 @@ import burp.api.montoya.http.message.HttpHeader
 import burp.api.montoya.http.message.HttpMessage
 import burp.api.montoya.http.message.HttpRequestResponse
 import burp.api.montoya.ui.contextmenu.MessageEditorHttpRequestResponse
+import com.mattiadr.burpIO.Settings
 import com.mattiadr.burpIO.stringToClipboard
 import java.awt.Component
 import javax.swing.JMenuItem
 
 object CopyAsMarkdown {
-
-	private const val DEFAULT_BODY_TRUNCATE_LENGTH = 1000
-	private const val SELECTION_CONTEXT_LENGTH = 250
 
 	private enum class MdSyntax(
 		val before: String,     // before request
@@ -33,19 +31,6 @@ object CopyAsMarkdown {
 			""
 		)
 	}
-
-	private val REQUEST_HEADERS = listOf(
-		"host",
-		"authorization",
-		"cookie",
-	)
-
-	private val RESPONSE_HEADERS = listOf(
-		"date",
-		"location",
-		"authorization",
-		"set-cookie",
-	)
 
 	fun setupListMenuItems(menuItems: MutableList<Component>, requestResponses: List<HttpRequestResponse>) {
 		JMenuItem("Copy as Markdown (Full)").apply {
@@ -84,6 +69,9 @@ object CopyAsMarkdown {
 	}
 
 	private fun copyTruncated(messageEditorHttpRequestResponse: MessageEditorHttpRequestResponse, syntax: MdSyntax = MdSyntax.MARKDOWN) {
+		val requestHeaders = Settings.copyAsMarkdown_requestHeaders.split(",")
+		val responseHeaders = Settings.copyAsMarkdown_responseHeaders.split(",")
+
 		val requestResponse = messageEditorHttpRequestResponse.requestResponse()
 		val request = requestResponse.request()
 		val response = requestResponse.response()
@@ -95,16 +83,19 @@ object CopyAsMarkdown {
 
 		buildString {
 			append(syntax.before)
-			append(truncateHttpMessage(request, REQUEST_HEADERS, requestSelection))
+			append(truncateHttpMessage(request, requestHeaders, requestSelection))
 			append(syntax.middle)
 			if (requestResponse.hasResponse()) {
-				append(truncateHttpMessage(response, RESPONSE_HEADERS, responseSelection))
+				append(truncateHttpMessage(response, responseHeaders, responseSelection))
 			}
 			append(syntax.after)
 		}.let { stringToClipboard(it) }
 	}
 
 	private fun truncateHttpMessage(message: HttpMessage, headersToKeep: List<String>, selection: Range?): String {
+		val bodyTruncateLen = Settings.copyAsMarkdown_bodyTruncate
+		val selectionContext = Settings.copyAsMarkdown_selectionContext
+
 		val raw = message.toString()
 		val bodyOffset = message.bodyOffset().coerceIn(0, raw.length)
 
@@ -133,10 +124,10 @@ object CopyAsMarkdown {
 			bodyLength == 0 -> ""
 
 			selection == null -> {
-				if (bodyLength <= DEFAULT_BODY_TRUNCATE_LENGTH) {
+				if (bodyLength <= bodyTruncateLen) {
 					body
 				} else {
-					body.substring(0, DEFAULT_BODY_TRUNCATE_LENGTH) + "\n[...]"
+					body.substring(0, bodyTruncateLen) + "\n[...]"
 				}
 			}
 
@@ -146,8 +137,8 @@ object CopyAsMarkdown {
 				val relStart = (selection.startIndexInclusive() - bodyOffset).coerceIn(0, bodyLength)
 				val relEnd = (selection.endIndexExclusive() - bodyOffset).coerceIn(0, bodyLength)
 
-				val contextStart = (relStart - SELECTION_CONTEXT_LENGTH).coerceAtLeast(0)
-				val contextEnd = (relEnd + SELECTION_CONTEXT_LENGTH).coerceAtMost(bodyLength)
+				val contextStart = (relStart - selectionContext).coerceAtLeast(0)
+				val contextEnd = (relEnd + selectionContext).coerceAtMost(bodyLength)
 
 				buildString {
 					if (contextStart > 0) append("[...]\n")
