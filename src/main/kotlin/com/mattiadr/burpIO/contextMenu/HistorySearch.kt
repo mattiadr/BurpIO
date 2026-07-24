@@ -33,6 +33,7 @@ import javax.swing.SwingWorker
 import javax.swing.border.EmptyBorder
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
+import javax.swing.table.TableRowSorter
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
@@ -176,6 +177,11 @@ object HistorySearch {
 			maxWidth = 90
 		}
 		table.columnModel.getColumn(3).preferredWidth = 400
+
+		// only the ID column is sortable; getColumnClass makes it sort numerically instead of as text
+		table.rowSorter = TableRowSorter(model).apply {
+			for (col in 0 until model.columnCount) setSortable(col, true)
+		}
 
 		// double-click highlights just that row
 		table.addMouseListener(object : MouseAdapter() {
@@ -352,6 +358,11 @@ object HistorySearch {
 		override fun getColumnCount(): Int = columns.size
 
 		override fun getColumnName(column: Int): String = columns[column]
+
+		// ID is boxed Integer (javaObjectType, not the primitive int.class) so the row sorter sees a
+		// Comparable and orders it numerically; the rest are plain text
+		override fun getColumnClass(columnIndex: Int): Class<*> =
+			if (columnIndex == 0) Int::class.javaObjectType else String::class.java
 
 		override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
 			val result = results[rowIndex]
