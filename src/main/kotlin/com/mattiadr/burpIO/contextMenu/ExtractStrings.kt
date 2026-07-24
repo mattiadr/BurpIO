@@ -3,6 +3,7 @@ package com.mattiadr.burpIO.contextMenu
 import burp.api.montoya.http.message.HttpRequestResponse
 import com.mattiadr.burpIO.AppContext
 import com.mattiadr.burpIO.stringToClipboard
+import com.mattiadr.burpIO.toast
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.FlowLayout
@@ -17,6 +18,7 @@ import javax.swing.JMenuItem
 import javax.swing.JPanel
 import javax.swing.JTextField
 import javax.swing.KeyStroke
+import javax.swing.SwingWorker
 
 object ExtractStrings {
 
@@ -87,7 +89,7 @@ object ExtractStrings {
 	private fun showPopup(
 		title: String,
 		requestResponses: List<HttpRequestResponse>,
-		callback: (HttpRequestResponse, String) -> List<String>
+		callback: (HttpRequestResponse, String) -> List<String?>
 	) {
 		val dialog = JDialog(AppContext.swingUtils.suiteFrame(), title, true)
 		dialog.layout = BorderLayout()
@@ -104,30 +106,46 @@ object ExtractStrings {
 		dialog.add(formPanel, BorderLayout.CENTER)
 
 		// button panel
-		val buttonPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
-		JButton("OK").apply {
-			addActionListener { _ ->
-				// make requestResponses unique by url if needed
-				val requestResponses = if (uniqueURLsCheckbox.isSelected) requestResponses.distinctBy {
-					it.request().url()
-				} else requestResponses
-				// invoke callback
-				var extractedValues: List<String> = requestResponses.flatMap { callback(it, textField.text) }
-				// make distinct if needed
-				extractedValues = if (uniqueResultsCheckbox.isSelected) extractedValues.distinct() else extractedValues
-				// copy to clipboard
-				val text = extractedValues.joinToString("\n") { it.replace(newlineRegex, "\\n") }
-				stringToClipboard(text, "Copied ${extractedValues.size} lines to Clipboard")
-				dialog.dispose()
-			}
-			buttonPanel.add(this)
-			dialog.rootPane.defaultButton = this
+		val okButton = JButton("OK")
+		val cancelButton = JButton("Cancel").apply { addActionListener { dialog.dispose() } }
+
+		// The dialog closes immediately so the user can keep working in Burp; the extraction runs
+		// on a background thread and copies to the clipboard once it completes.
+		okButton.addActionListener {
+			// snapshot the UI state on the EDT before closing the dialog and handing off to the worker
+			val query = textField.text
+			val uniqueURLs = uniqueURLsCheckbox.isSelected
+			val uniqueResults = uniqueResultsCheckbox.isSelected
+			dialog.dispose()
+
+			object : SwingWorker<List<String>, Void>() {
+				override fun doInBackground(): List<String> {
+					// make requestResponses unique by url if needed
+					val rrs = if (uniqueURLs) requestResponses.distinctBy { it.request().url() } else requestResponses
+					// invoke callback; drop nulls that leak in from Montoya's platform-typed getters
+					// (headerValue/parameterValue return null when the header/parameter is absent)
+					val extracted = rrs.flatMap { callback(it, query) }.filterNotNull()
+					return if (uniqueResults) extracted.distinct() else extracted
+				}
+
+				override fun done() {
+					try {
+						val extractedValues = get()
+						val text = extractedValues.joinToString("\n") { it.replace(newlineRegex, "\\n") }
+						stringToClipboard(text, "Copied ${extractedValues.size} lines to Clipboard")
+					} catch (e: Exception) {
+						toast("Extraction failed: ${e.message}", 10000)
+					}
+				}
+			}.execute()
 		}
-		JButton("Cancel").apply {
-			addActionListener { dialog.dispose() }
-			buttonPanel.add(this)
+
+		val buttonPanel = JPanel(FlowLayout(FlowLayout.RIGHT)).apply {
+			add(okButton)
+			add(cancelButton)
 		}
 		dialog.add(buttonPanel, BorderLayout.SOUTH)
+		dialog.rootPane.defaultButton = okButton
 
 		// keybinds
 		val esc = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)
