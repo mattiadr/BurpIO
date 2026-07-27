@@ -33,6 +33,10 @@ object CopyAsMarkdown {
 	}
 
 	fun setupListMenuItems(menuItems: MutableList<Component>, requestResponses: List<HttpRequestResponse>) {
+		JMenuItem("Copy as Markdown").apply {
+			addActionListener { copyTruncated(requestResponses) }
+			menuItems.add(this)
+		}
 		JMenuItem("Copy as Markdown (Full)").apply {
 			addActionListener { copyFull(requestResponses) }
 			menuItems.add(this)
@@ -54,6 +58,24 @@ object CopyAsMarkdown {
 		val flavor = MdFlavor.valueOf(Settings.copyAsMarkdown_mdFlavor)
 		requestResponseList.joinToString(flavor.separator) {
 			flavor.before + (it.request()?.toString() ?: "") + flavor.middle + (it.response()?.toString() ?: "") + flavor.after
+		}.let { stringToClipboard(it) }
+	}
+
+	private fun copyTruncated(requestResponseList: List<HttpRequestResponse>) {
+		val flavor = MdFlavor.valueOf(Settings.copyAsMarkdown_mdFlavor)
+		val requestHeaders = Settings.copyAsMarkdown_requestHeaders.split(",")
+		val responseHeaders = Settings.copyAsMarkdown_responseHeaders.split(",")
+
+		requestResponseList.joinToString(flavor.separator) { requestResponse ->
+			buildString {
+				append(flavor.before)
+				append(truncateHttpMessage(requestResponse.request(), requestHeaders))
+				append(flavor.middle)
+				if (requestResponse.hasResponse()) {
+					append(truncateHttpMessage(requestResponse.response(), responseHeaders))
+				}
+				append(flavor.after)
+			}
 		}.let { stringToClipboard(it) }
 	}
 
@@ -82,7 +104,7 @@ object CopyAsMarkdown {
 		}.let { stringToClipboard(it) }
 	}
 
-	private fun truncateHttpMessage(message: HttpMessage, headersToKeep: List<String>, selection: Range?): String {
+	private fun truncateHttpMessage(message: HttpMessage, headersToKeep: List<String>, selection: Range? = null): String {
 		val bodyTruncateLen = Settings.copyAsMarkdown_bodyTruncate
 		val selectionContext = Settings.copyAsMarkdown_selectionContext
 
