@@ -4,6 +4,9 @@ import burp.api.montoya.core.Range
 import burp.api.montoya.http.message.HttpHeader
 import burp.api.montoya.http.message.HttpMessage
 import burp.api.montoya.http.message.HttpRequestResponse
+import burp.api.montoya.http.message.params.HttpParameterType
+import burp.api.montoya.http.message.params.ParsedHttpParameter
+import burp.api.montoya.http.message.requests.HttpRequest
 import burp.api.montoya.ui.contextmenu.MessageEditorHttpRequestResponse
 import com.mattiadr.burpIO.Settings
 import com.mattiadr.burpIO.stringToClipboard
@@ -63,16 +66,17 @@ object CopyAsMarkdown {
 
 	private fun copyTruncated(requestResponseList: List<HttpRequestResponse>) {
 		val flavor = MdFlavor.valueOf(Settings.copyAsMarkdown_mdFlavor)
-		val requestHeaders = Settings.copyAsMarkdown_requestHeaders.split(",")
-		val responseHeaders = Settings.copyAsMarkdown_responseHeaders.split(",")
+		val requestHeaders = Settings.copyAsMarkdown_requestHeaders
+		val cookies = Settings.copyAsMarkdown_cookies
+		val responseHeaders = Settings.copyAsMarkdown_responseHeaders
 
 		requestResponseList.joinToString(flavor.separator) { requestResponse ->
 			buildString {
 				append(flavor.before)
-				append(truncateHttpMessage(requestResponse.request(), requestHeaders))
+				append(truncateHttpMessage(requestResponse.request(), requestHeaders, cookies))
 				append(flavor.middle)
 				if (requestResponse.hasResponse()) {
-					append(truncateHttpMessage(requestResponse.response(), responseHeaders))
+					append(truncateHttpMessage(requestResponse.response(), responseHeaders, null))
 				}
 				append(flavor.after)
 			}
@@ -81,8 +85,9 @@ object CopyAsMarkdown {
 
 	private fun copyTruncated(messageEditorHttpRequestResponse: MessageEditorHttpRequestResponse) {
 		val flavor = MdFlavor.valueOf(Settings.copyAsMarkdown_mdFlavor)
-		val requestHeaders = Settings.copyAsMarkdown_requestHeaders.split(",")
-		val responseHeaders = Settings.copyAsMarkdown_responseHeaders.split(",")
+		val requestHeaders = Settings.copyAsMarkdown_requestHeaders
+		val cookies = Settings.copyAsMarkdown_cookies
+		val responseHeaders = Settings.copyAsMarkdown_responseHeaders
 
 		val requestResponse = messageEditorHttpRequestResponse.requestResponse()
 		val request = requestResponse.request()
@@ -95,16 +100,16 @@ object CopyAsMarkdown {
 
 		buildString {
 			append(flavor.before)
-			append(truncateHttpMessage(request, requestHeaders, requestSelection))
+			append(truncateHttpMessage(request, requestHeaders, cookies, requestSelection))
 			append(flavor.middle)
 			if (requestResponse.hasResponse()) {
-				append(truncateHttpMessage(response, responseHeaders, responseSelection))
+				append(truncateHttpMessage(response, responseHeaders, null, responseSelection))
 			}
 			append(flavor.after)
 		}.let { stringToClipboard(it) }
 	}
 
-	private fun truncateHttpMessage(message: HttpMessage, headersToKeep: List<String>, selection: Range? = null): String {
+	private fun truncateHttpMessage(message: HttpMessage, headersToKeep: List<String>, cookiesToKeep: List<String>?, selection: Range? = null): String {
 		val bodyTruncateLen = Settings.copyAsMarkdown_bodyTruncate
 		val selectionContext = Settings.copyAsMarkdown_selectionContext
 
@@ -123,6 +128,14 @@ object CopyAsMarkdown {
 			allHeaders.filterTo(keptHeaders) { it.name().equals(name, ignoreCase = true) }
 		}
 
+		// filter cookies
+		if (!cookiesToKeep.isNullOrEmpty() && message is HttpRequest && message.hasHeader("Cookie")) {
+			val allCookies: List<ParsedHttpParameter> = message.parameters(HttpParameterType.COOKIE)
+			val keptCookies = allCookies.filter { it.name() in cookiesToKeep }.joinToString("; ") { "${it.name()}=${it.value()}" }
+			keptHeaders.add(HttpHeader.httpHeader("Cookie", keptCookies))
+		}
+
+		// append headers
 		val headerLines = mutableListOf<String>()
 		headerLines.add(firstLine)
 		keptHeaders.forEach { headerLines.add(it.toString()) }

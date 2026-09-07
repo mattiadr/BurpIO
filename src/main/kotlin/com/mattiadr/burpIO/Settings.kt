@@ -25,12 +25,16 @@ object Settings {
 		"Markdown Flavor", CopyAsMarkdown.MdFlavor.entries.map { it.name }, "Markdown",
 		"Which Markdown Flavor to use for wrapping Requests and Responses."
 	)
-	val copyAsMarkdown_requestHeaders: String by stringSetting(
-		"Request Headers", "Host,Authorization,Cookie",
+	val copyAsMarkdown_requestHeaders: List<String> by stringListSetting(
+		"Request Headers", listOf("Host", "Authorization", "Cookie"),
 		"When copying as Markdown keep these Request Headers."
 	)
-	val copyAsMarkdown_responseHeaders: String by stringSetting(
-		"Response Headers", "Date,Location,Authorization,Set-Cookie",
+	val copyAsMarkdown_cookies: List<String> by stringListSetting(
+		"Cookies", listOf(),
+		"When copying as Markdown keep these Cookies even if \"Cookie\" is not in Request Headers."
+	)
+	val copyAsMarkdown_responseHeaders: List<String> by stringListSetting(
+		"Response Headers", listOf("Date", "Location", "Authorization", "Set-Cookie"),
 		"When copying as Markdown keep these Response Headers."
 	)
 	val copyAsMarkdown_bodyTruncate: Int by integerSetting(
@@ -76,6 +80,15 @@ object Settings {
 			SettingsPanelSetting.stringSetting(description, name, default)
 		}) {
 			settingsPanel.getString(name)
+		}
+
+	private fun stringListSetting(name: String, default: List<String> = listOf(), description: String? = null) =
+		SettingDelegate(if (description == null) {
+			SettingsPanelSetting.stringSetting(name, default.joinToString(",") { it.trim() })
+		} else {
+			SettingsPanelSetting.stringSetting(description, name, default.joinToString(",") { it.trim() })
+		}) {
+			settingsPanel.getString(name).split(",").map { it.trim() }.filter { it.isNotEmpty() }
 		}
 
 	private fun integerSetting(name: String, default: Int = 0, description: String? = null) =
