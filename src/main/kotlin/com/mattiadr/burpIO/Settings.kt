@@ -23,27 +23,35 @@ object Settings {
 	 */
 	val copyAsMarkdown_mdFlavor: String by listSetting(
 		"Markdown Flavor", CopyAsMarkdown.MdFlavor.entries.map { it.name }, "Markdown",
-		"Which Markdown Flavor to use for wrapping Requests and Responses."
+		"Copy as Markdown: Markdown Flavor to use for wrapping Requests and Responses."
 	)
 	val copyAsMarkdown_requestHeaders: List<String> by stringListSetting(
 		"Request Headers", listOf("Host", "Authorization", "Cookie"),
-		"When copying as Markdown keep these Request Headers."
+		"Copy as Markdown: Request Headers to keep when copying."
 	)
 	val copyAsMarkdown_cookies: List<String> by stringListSetting(
 		"Cookies", listOf(),
-		"When copying as Markdown keep these Cookies even if \"Cookie\" is not in Request Headers."
+		"Copy as Markdown: Cookies to keep when copying, even if \"Cookie\" is not in Request Headers."
 	)
 	val copyAsMarkdown_responseHeaders: List<String> by stringListSetting(
 		"Response Headers", listOf("Date", "Location", "Authorization", "Set-Cookie"),
-		"When copying as Markdown keep these Response Headers."
+		"Copy as Markdown: Response Headers to keep when copying."
 	)
 	val copyAsMarkdown_bodyTruncate: Int by integerSetting(
 		"Body Truncate", 1000,
-		"When copying as Markdown truncate bodies after this many characters."
+		"Copy as Markdown: Truncate bodies after this many characters."
 	)
 	val copyAsMarkdown_selectionContext: Int by integerSetting(
 		"Selection Context", 250,
-		"When copying as Markdown with a selection also copy this many characters before and after the selection."
+		"Copy as Markdown: When copying with a selection also copy this many characters before and after the selection."
+	)
+
+	/**
+	 * Quick Session Settings
+	 */
+	val quickSession_sessionHeaders: List<String> by stringListSetting(
+		"Session Headers", listOf("Authorization", "Cookie"),
+		"Quick Session: Request Headers to store in a session."
 	)
 
 	private lateinit var settingsPanel: SettingsPanelWithData

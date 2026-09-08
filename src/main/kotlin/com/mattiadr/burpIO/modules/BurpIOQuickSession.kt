@@ -5,12 +5,12 @@ import burp.api.montoya.http.message.requests.HttpRequest
 import burp.api.montoya.ui.contextmenu.MessageEditorHttpRequestResponse
 import burp.api.montoya.ui.hotkey.HotKey
 import com.mattiadr.burpIO.AppContext
+import com.mattiadr.burpIO.Settings
 import com.mattiadr.burpIO.toast
 
 object BurpIOQuickSession {
 
 	private const val STORAGE_SIZE = 10
-	private val SESSION_HEADERS = listOf("Authorization", "Cookie")
 
 	private val sessionStorage: MutableList<List<HttpHeader>?> = MutableList(STORAGE_SIZE) { null }
 
@@ -37,7 +37,7 @@ object BurpIOQuickSession {
 	}
 
 	private fun storeSession(id: Int, request: HttpRequest) {
-		sessionStorage[id] = SESSION_HEADERS.mapNotNull { request.header(it) }
+		sessionStorage[id] = Settings.quickSession_sessionHeaders.mapNotNull { request.header(it) }
 		toast("💾  Stored session to slot #$id")
 	}
 
