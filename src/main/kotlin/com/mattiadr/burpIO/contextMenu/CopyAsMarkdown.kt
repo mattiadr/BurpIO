@@ -133,8 +133,11 @@ object CopyAsMarkdown {
 		val cookiesAlreadyIncluded = headersToKeep.any { it.equals("Cookie", ignoreCase = true) }
 		if (!cookiesAlreadyIncluded && !cookiesToKeep.isNullOrEmpty() && message is HttpRequest && message.hasHeader("Cookie")) {
 			val allCookies: List<ParsedHttpParameter> = message.parameters(HttpParameterType.COOKIE)
-			val keptCookies = allCookies.filter { it.name() in cookiesToKeep }.joinToString("; ") { "${it.name()}=${it.value()}" }
-			keptHeaders.add(HttpHeader.httpHeader("Cookie", keptCookies))
+			val keptCookies = allCookies.filter { it.name() in cookiesToKeep }
+			if (keptCookies.isNotEmpty()) {
+				val cookieString = keptCookies.joinToString("; ") { "${it.name()}=${it.value()}" }
+				keptHeaders.add(HttpHeader.httpHeader("Cookie", cookieString))
+			}
 		}
 
 		// append headers
