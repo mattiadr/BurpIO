@@ -9,7 +9,7 @@ import burp.api.montoya.http.message.params.ParsedHttpParameter
 import burp.api.montoya.http.message.requests.HttpRequest
 import burp.api.montoya.ui.contextmenu.MessageEditorHttpRequestResponse
 import com.mattiadr.burpIO.Settings
-import com.mattiadr.burpIO.stringToClipboard
+import com.mattiadr.burpIO.utils.stringToClipboard
 import java.awt.Component
 import javax.swing.JMenuItem
 

@@ -25,9 +25,9 @@ Allows extracting parameters from selected requests and responses and copies the
 
 The most common use case is to use the proxy filter to select the requests you are interested in, then Ctrl+A and extract the parameters you need. Useful to extract all values for a specific parameter (ex: `?action=`) or header.
 
-Supports using regexes on body. If you specify a regex with no capturing group, the entire match is returned. If you have one or more capturing group, all capturing groups are returned separated by the tab character.
+Supports extracting from the body with a regex or a JSON path. With a regex, an optional template shapes the output: leave it blank to return the whole match, or reference capturing groups with `$1` (numbered) and `${name}` (named), using `$$` for a literal `$` — e.g. the regex `user-(\d+)` with template `$1` returns just the digits. With a JSON path, it uses the syntax defined by the Montoya API: elements delimited by `.`, with `[n]` for an array index and `[]` for the last element — e.g. `account.[0].user.name`.
 
-Returns one result per line so you can easily pipe it to any Unix tool for processing text. If there are tab or new line characters in the output, they are encoded as `\t` or `\n`.
+Returns one result per line so you can easily pipe it to any Unix tool for processing text. If there are new line characters in the output, they are encoded as `\n`.
 
 #### History Search
 

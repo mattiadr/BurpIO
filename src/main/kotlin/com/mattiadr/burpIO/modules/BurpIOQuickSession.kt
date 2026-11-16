@@ -6,7 +6,7 @@ import burp.api.montoya.ui.contextmenu.MessageEditorHttpRequestResponse
 import burp.api.montoya.ui.hotkey.HotKey
 import com.mattiadr.burpIO.AppContext
 import com.mattiadr.burpIO.Settings
-import com.mattiadr.burpIO.toast
+import com.mattiadr.burpIO.utils.toast
 
 object BurpIOQuickSession {
 

@@ -1,11 +1,10 @@
-package com.mattiadr.burpIO
+package com.mattiadr.burpIO.utils
 
 import burp.api.montoya.ui.Theme
+import com.mattiadr.burpIO.AppContext
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Toolkit
-import java.awt.datatransfer.Clipboard
-import java.awt.datatransfer.StringSelection
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JLabel
@@ -13,14 +12,6 @@ import javax.swing.JPanel
 import javax.swing.JWindow
 import javax.swing.SwingUtilities
 import javax.swing.Timer
-
-private val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
-
-fun stringToClipboard(string: String, message: String = "Copied to Clipboard") {
-	val selection = StringSelection(string)
-	clipboard.setContents(selection, selection)
-	toast("📋  $message")
-}
 
 fun toast(message: String, duration: Int = 3000) {
 	SwingUtilities.invokeLater {
